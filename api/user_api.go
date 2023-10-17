@@ -2,6 +2,8 @@ package api
 
 import (
 	"net/http"
+	"tic4303-mini-proj/api/dto"
+	"tic4303-mini-proj/api/vo"
 	"tic4303-mini-proj/service"
 
 	"github.com/gin-gonic/gin"
@@ -15,5 +17,33 @@ type UserApi struct {
 }
 
 func (u UserApi) Login(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+	var loginReq dto.LoginReq
+	err := c.ShouldBind(&loginReq)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, vo.BadRequestResp("request body is not found"))
+		return
+	}
+
+	userVO, err := u.UserSvc.Login(&loginReq)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, vo.BadRequestResp(err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, vo.SuccessResp(userVO))
+}
+
+func (u UserApi) Create(c *gin.Context) {
+	var userCreateReq dto.UserCreateReq
+	err := c.ShouldBindJSON(&userCreateReq)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, vo.BadRequestResp("request body is not found"))
+		return
+	}
+
+	err = u.UserSvc.Create(&userCreateReq)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, vo.BadRequestResp(err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, vo.SuccessResp(""))
 }

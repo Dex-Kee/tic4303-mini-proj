@@ -17,11 +17,15 @@ func (s *ServerRouter) RegisterApi(app *gin.Engine) {
 	userGroup := app.Group("/api/user")
 	{
 		userGroup.POST("/login", s.UserApi.Login)
+		userGroup.PUT("/create", s.UserApi.Create)
 	}
 }
 
 func (s *ServerRouter) RegisterPage(app *gin.Engine) {
-
+	userGroup := app.Group("/page/user")
+	{
+		userGroup.GET("/login", s.UserApi.Login)
+	}
 }
 
 func (s *ServerRouter) NoRouterHandler(c *gin.Context) {
