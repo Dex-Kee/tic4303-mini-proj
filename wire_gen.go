@@ -7,9 +7,11 @@
 package main
 
 import (
+	"github.com/dzhcool/sven/setting"
 	"tic4303-mini-proj/api"
 	"tic4303-mini-proj/dao"
 	"tic4303-mini-proj/middleware"
+	"tic4303-mini-proj/page"
 	"tic4303-mini-proj/router"
 	"tic4303-mini-proj/service"
 )
@@ -21,14 +23,36 @@ func initServerRouter() *router.ServerRouter {
 	userDAO := &dao.UserDAO{
 		DB: db,
 	}
+	v := initJwtSigningKey()
+	string2 := initDigestKey()
 	userSvc := &service.UserSvc{
-		UserDAO: userDAO,
+		UserDAO:       userDAO,
+		JwtSigningKey: v,
+		DigestKey:     string2,
 	}
 	userApi := &api.UserApi{
 		UserSvc: userSvc,
 	}
+	userPage := &page.UserPage{}
+	authFilter := &middleware.AuthFilter{
+		JwtSigningKey: v,
+		DigestKey:     string2,
+		UserSvc:       userSvc,
+	}
 	serverRouter := &router.ServerRouter{
-		UserApi: userApi,
+		UserApi:    userApi,
+		UserPage:   userPage,
+		AuthFilter: authFilter,
 	}
 	return serverRouter
+}
+
+// wire.go:
+
+func initJwtSigningKey() []byte {
+	return []byte(setting.Config.MustString("auth.signing.key", "tic4303-mini-proj"))
+}
+
+func initDigestKey() string {
+	return setting.Config.MustString("auth.digest.key", "digestKey256")
 }

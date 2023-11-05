@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/dzhcool/sven v0.0.12
 	github.com/gin-gonic/gin v1.9.1
+	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/wire v0.5.0
 	go.uber.org/zap v1.21.0
 	gorm.io/driver/mysql v1.5.2

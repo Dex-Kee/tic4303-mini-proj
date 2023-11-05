@@ -46,10 +46,17 @@ func initLog() {
 func initGinEngine(r *router.ServerRouter) *gin.Engine {
 	app := gin.Default()
 
+	// register template & static
+	app.LoadHTMLGlob("templates/*.html")
+	app.StaticFile("/favicon.ico", "./static/favicon.ico")
+	app.Static("/static", "./static")
+
+	// register middleware handler
 	app.NoRoute(r.NoRouterHandler)
 	app.NoMethod(r.NoMethodHandler)
 
-	r.RegisterApi(app)
+	// register api & page
 	r.RegisterPage(app)
+	r.RegisterApi(app)
 	return app
 }
