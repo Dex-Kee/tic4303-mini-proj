@@ -9,6 +9,7 @@ import (
 	"tic4303-mini-proj/constant"
 	"tic4303-mini-proj/dao"
 	"tic4303-mini-proj/model"
+	"tic4303-mini-proj/service/validation"
 	"tic4303-mini-proj/util"
 	"time"
 
@@ -19,9 +20,10 @@ import (
 var UserSet = wire.NewSet(wire.Struct(new(UserSvc), "*"))
 
 type UserSvc struct {
-	UserDAO       *dao.UserDAO
-	JwtSigningKey []byte
-	DigestKey     string
+	UserDAO           *dao.UserDAO
+	UserValidationSvc *validation.UserValidationSvc
+	JwtSigningKey     []byte
+	DigestKey         string
 }
 
 func (u *UserSvc) Login(form *dto.LoginReq) (string, error) {
@@ -113,14 +115,18 @@ func (u *UserSvc) Update(form *dto.UserUpdateReq) error {
 		return errors.New("user does not exist")
 	}
 
-	// checking of uniqueness of field values (todo)
+	err := u.UserValidationSvc.UpdateUserChecker(form)
+	if err != nil {
+		return err
+	}
 
+	// checking of uniqueness of field values (todo)
 	user.Email = form.Email
 	user.Phone = form.Phone
 	user.Gender = form.Gender
 	user.Country = form.Country
 	user.Qualification = form.Qualification
-	err := u.UserDAO.Update(user)
+	err = u.UserDAO.Update(user)
 	if err != nil {
 		return errors.New("update failed")
 	}

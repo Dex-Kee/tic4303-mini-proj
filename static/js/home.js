@@ -1,6 +1,25 @@
 $(document).ready(function () {
-    var token = localStorage.getItem("token");
-    console.log("token: " + token);
+    // Fetch country data
+    var select = $("#country");
+    $.ajax({
+        url: "/api/info/country",
+        dataType: "json",
+        success: function(resp) {
+            // Iterate through the country data and populate the <select> element
+            $.each(resp.data, function(k, v) {
+                var option = $("<option>");
+                option.val(v);
+                option.text(k);
+                select.append(option);
+            });
+            console.log(resp.data);
+        },
+        error: function(error) {
+            showToast("Failed to fetch country data.")
+        }
+    });
+
+
     // Fetch user data from the backend
     $.ajax({
         type: "GET",

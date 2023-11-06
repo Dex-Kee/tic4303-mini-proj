@@ -4,4 +4,4 @@ import (
 	"github.com/google/wire"
 )
 
-var ApiSet = wire.NewSet(UserApiSet)
+var ApiSet = wire.NewSet(UserApiSet, InfoApiSet)

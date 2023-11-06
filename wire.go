@@ -10,13 +10,14 @@ import (
 	"tic4303-mini-proj/page"
 	"tic4303-mini-proj/router"
 	"tic4303-mini-proj/service"
+	"tic4303-mini-proj/service/validation"
 
 	"github.com/dzhcool/sven/setting"
 	"github.com/google/wire"
 )
 
 func initServerRouter() *router.ServerRouter {
-	wire.Build(dao.DaoSet, service.ServiceSet, api.ApiSet, page.PageSet, middleware.MiddlewareSet, router.RouterSet, initJwtSigningKey, initDigestKey)
+	wire.Build(dao.DaoSet, service.ServiceSet, validation.ValidationSet, api.ApiSet, page.PageSet, middleware.MiddlewareSet, router.RouterSet, initJwtSigningKey, initDigestKey)
 	return nil
 }
 

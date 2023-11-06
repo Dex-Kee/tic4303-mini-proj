@@ -77,8 +77,6 @@ func (u *UserApi) Update(c *gin.Context) {
 	}
 
 	userUpdateReq.Id = webctx.GetUserId(c)
-	fmt.Printf("form: %v\n", userUpdateReq)
-
 	err = u.UserSvc.Update(&userUpdateReq)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, vo.ErrorResp(500, err.Error()))

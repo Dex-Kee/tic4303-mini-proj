@@ -14,6 +14,7 @@ import (
 	"tic4303-mini-proj/page"
 	"tic4303-mini-proj/router"
 	"tic4303-mini-proj/service"
+	"tic4303-mini-proj/service/validation"
 )
 
 // Injectors from wire.go:
@@ -23,16 +24,21 @@ func initServerRouter() *router.ServerRouter {
 	userDAO := &dao.UserDAO{
 		DB: db,
 	}
+	userValidationSvc := &validation.UserValidationSvc{
+		UserDAO: userDAO,
+	}
 	v := initJwtSigningKey()
 	string2 := initDigestKey()
 	userSvc := &service.UserSvc{
-		UserDAO:       userDAO,
-		JwtSigningKey: v,
-		DigestKey:     string2,
+		UserDAO:           userDAO,
+		UserValidationSvc: userValidationSvc,
+		JwtSigningKey:     v,
+		DigestKey:         string2,
 	}
 	userApi := &api.UserApi{
 		UserSvc: userSvc,
 	}
+	infoApi := &api.InfoApi{}
 	userPage := &page.UserPage{}
 	authFilter := &middleware.AuthFilter{
 		JwtSigningKey: v,
@@ -41,6 +47,7 @@ func initServerRouter() *router.ServerRouter {
 	}
 	serverRouter := &router.ServerRouter{
 		UserApi:    userApi,
+		InfoApi:    infoApi,
 		UserPage:   userPage,
 		AuthFilter: authFilter,
 	}

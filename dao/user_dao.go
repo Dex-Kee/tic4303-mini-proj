@@ -56,3 +56,9 @@ func (u *UserDAO) GetByUsername(username string) (*model.User, error) {
 	}
 	return &user, nil
 }
+
+func (u *UserDAO) CountByEmail(id int64, email string) int64 {
+	var count int64
+	u.DB.Model(&model.User{}).Where("id != ? and email =?", id, email).Count(&count)
+	return count
+}

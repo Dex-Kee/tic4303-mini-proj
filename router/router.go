@@ -13,6 +13,7 @@ var RouterSet = wire.Struct(new(ServerRouter), "*")
 
 type ServerRouter struct {
 	UserApi    *api.UserApi
+	InfoApi    *api.InfoApi
 	UserPage   *page.UserPage
 	AuthFilter *middleware.AuthFilter
 }
@@ -25,6 +26,10 @@ func (s *ServerRouter) RegisterApi(app *gin.Engine) {
 		userGroup.GET("/profile", s.AuthFilter.ValidateResource, s.UserApi.Profile)
 		userGroup.PUT("/update", s.AuthFilter.ValidateResource, s.UserApi.Update)
 		userGroup.PUT("/logout", s.AuthFilter.ValidateResource, s.UserApi.Logout)
+	}
+	infoGroup := app.Group("/api/info")
+	{
+		infoGroup.GET("/country", s.InfoApi.CountryMap)
 	}
 }
 

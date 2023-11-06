@@ -59,3 +59,12 @@ button {
 button:hover {
     background-color: #0056b3;
 }
+
+.toast {
+    position: fixed;
+    top: 15%; /* Center vertically at 50% of the viewport height */
+    left: 50%; /* Center horizontally at 50% of the viewport width */
+    transform: translate(-50%, -50%); /* Center the toast */
+    right: 120px; /* Adjust the right position as needed */
+    z-index: 1; /* Ensure it's on top of other content */
+}
