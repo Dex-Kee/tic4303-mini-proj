@@ -1,11 +1,14 @@
 package router
 
 import (
+	"strings"
 	"tic4303-mini-proj/api"
 	"tic4303-mini-proj/middleware"
 	"tic4303-mini-proj/page"
 
 	"github.com/arl/statsviz"
+	"github.com/dzhcool/sven/setting"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 )
@@ -47,6 +50,21 @@ func (s *ServerRouter) RegisterPage(app *gin.Engine) {
 }
 
 func (s *ServerRouter) RegisterMiddleware(app *gin.Engine) {
+	s.registerDynamicAnalysisTool(app)
+	s.registerCors(app)
+}
+
+func (s *ServerRouter) registerCors(app *gin.Engine) {
+	allowOrigins := strings.Split(setting.Config.MustString("app.allow.origins", "*"), ",")
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     allowOrigins,
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
+		AllowHeaders:     []string{"*"},
+		AllowCredentials: true,
+	}))
+}
+
+func (s *ServerRouter) registerDynamicAnalysisTool(app *gin.Engine) {
 	// Register dynamic analysis tool middleware.
 	// Create statsviz server.
 	srv, _ := statsviz.NewServer()

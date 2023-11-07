@@ -3,8 +3,10 @@ module tic4303-mini-proj
 go 1.19
 
 require (
+	github.com/arl/statsviz v0.6.0
 	github.com/biter777/countries v1.6.6
 	github.com/dzhcool/sven v0.0.12
+	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/wire v0.5.0
@@ -15,7 +17,6 @@ require (
 )
 
 require (
-	github.com/arl/statsviz v0.6.0 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
