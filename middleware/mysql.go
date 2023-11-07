@@ -13,40 +13,26 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-type mysqlConfig struct {
+type MysqlConfig struct {
 	Type, Host, Name, User, Passwd, Path, SSLMode, Port, Charset, TablePrefix string
 }
 
-func InitMysql() *gorm.DB {
-	config := loadConfigs("api")
-
+func BuildMysqlDB(cfg *MysqlConfig) *gorm.DB {
 	// new db engine
-	db, err := newEngine(config)
+	db, err := newEngine(cfg)
 	if err != nil {
 		log.Fatalf("[orm] error: %v\n", err)
 	}
 
 	// sync table structure
-	db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET="+config.Charset).AutoMigrate()
+	db.Set("gorm:table_options", "ENGINE=InnoDB DEFAULT CHARSET="+cfg.Charset).AutoMigrate()
 
 	gob.Register(time.Time{})
 
 	return db
 }
 
-func loadConfigs(name string) *mysqlConfig {
-	config := new(mysqlConfig)
-	config.Host = setting.Config.MustString("db."+name+".host", "")
-	config.Name = setting.Config.MustString("db."+name+".name", "")
-	config.User = setting.Config.MustString("db."+name+".user", "")
-	config.Passwd = setting.Config.MustString("db."+name+".passwd", "")
-	config.Port = setting.Config.MustString("db."+name+".port", "")
-	config.Charset = setting.Config.MustString("db."+name+".charset", "utf8")
-	config.TablePrefix = setting.Config.MustString("db."+name+".prefix", "")
-	return config
-}
-
-func getEngine(config *mysqlConfig) (*gorm.DB, error) {
+func getEngine(config *MysqlConfig) (*gorm.DB, error) {
 	dsn := ""
 	if config.Host[0] == '/' { // looks like a unix socket
 		dsn = fmt.Sprintf("%s:%s@unix(%s:%s)/%s?charset=%s&timeout=3s&parseTime=true&loc=Local",
@@ -60,7 +46,7 @@ func getEngine(config *mysqlConfig) (*gorm.DB, error) {
 	return gorm.Open(mysql.Open(dsn), &gorm.Config{})
 }
 
-func newEngine(config *mysqlConfig) (*gorm.DB, error) {
+func newEngine(config *MysqlConfig) (*gorm.DB, error) {
 	db, err := getEngine(config)
 	if err != nil {
 		return nil, err

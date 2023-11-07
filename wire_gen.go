@@ -20,20 +20,24 @@ import (
 // Injectors from wire.go:
 
 func initServerRouter() *router.ServerRouter {
-	db := middleware.InitMysql()
+	v := loadJwtSigningKey()
+	string2 := loadDigestKey()
+	mysqlConfig := loadDBCfg()
+	db := middleware.BuildMysqlDB(mysqlConfig)
 	userDAO := &dao.UserDAO{
 		DB: db,
 	}
 	userValidationSvc := &validation.UserValidationSvc{
 		UserDAO: userDAO,
 	}
-	v := initJwtSigningKey()
-	string2 := initDigestKey()
+	redisConfig := loadRedisCfg()
+	client := middleware.BuildRedisClient(redisConfig)
 	userSvc := &service.UserSvc{
-		UserDAO:           userDAO,
-		UserValidationSvc: userValidationSvc,
 		JwtSigningKey:     v,
 		DigestKey:         string2,
+		UserDAO:           userDAO,
+		UserValidationSvc: userValidationSvc,
+		RedisClient:       client,
 	}
 	userApi := &api.UserApi{
 		UserSvc: userSvc,
@@ -44,6 +48,7 @@ func initServerRouter() *router.ServerRouter {
 		JwtSigningKey: v,
 		DigestKey:     string2,
 		UserSvc:       userSvc,
+		RedisClient:   client,
 	}
 	serverRouter := &router.ServerRouter{
 		UserApi:    userApi,
@@ -56,10 +61,31 @@ func initServerRouter() *router.ServerRouter {
 
 // wire.go:
 
-func initJwtSigningKey() []byte {
+func loadJwtSigningKey() []byte {
 	return []byte(setting.Config.MustString("auth.signing.key", "tic4303-mini-proj"))
 }
 
-func initDigestKey() string {
+func loadDigestKey() string {
 	return setting.Config.MustString("auth.digest.key", "digestKey256")
+}
+
+func loadDBCfg() *middleware.MysqlConfig {
+	config := new(middleware.MysqlConfig)
+	config.Host = setting.Config.MustString("db.host", "")
+	config.Name = setting.Config.MustString("db.name", "")
+	config.User = setting.Config.MustString("db.user", "")
+	config.Passwd = setting.Config.MustString("db.passwd", "")
+	config.Port = setting.Config.MustString("db.port", "")
+	config.Charset = setting.Config.MustString("db.charset", "utf8")
+	config.TablePrefix = setting.Config.MustString("db.prefix", "")
+	return config
+}
+
+func loadRedisCfg() *middleware.RedisConfig {
+	config := new(middleware.RedisConfig)
+	config.Host = setting.Config.MustString("redis.host", "127.0.0.1")
+	config.Port = setting.Config.MustString("redis.port", "5379")
+	config.DB = setting.Config.MustInt("redis.db", 0)
+	config.Password = setting.Config.MustString("redis.password", "")
+	return config
 }

@@ -31,5 +31,5 @@ const (
 	AppUserRoleHeader = "app-user-role"
 
 	// redisKey
-	MockUserListRedisKey = "app:mock:user:list"
+	RedisRevokedTokenKey = "app:revoked-token"
 )

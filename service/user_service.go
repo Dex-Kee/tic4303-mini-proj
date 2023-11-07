@@ -1,8 +1,8 @@
 package service
 
 import (
+	"context"
 	"errors"
-	"fmt"
 	"tic4303-mini-proj/api/dto"
 	"tic4303-mini-proj/api/pojo"
 	"tic4303-mini-proj/api/vo"
@@ -13,17 +13,21 @@ import (
 	"tic4303-mini-proj/util"
 	"time"
 
+	log "github.com/dzhcool/sven/zapkit"
+	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/wire"
+	"go.uber.org/zap"
 )
 
 var UserSet = wire.NewSet(wire.Struct(new(UserSvc), "*"))
 
 type UserSvc struct {
-	UserDAO           *dao.UserDAO
-	UserValidationSvc *validation.UserValidationSvc
 	JwtSigningKey     []byte
 	DigestKey         string
+	UserDAO           *dao.UserDAO
+	UserValidationSvc *validation.UserValidationSvc
+	RedisClient       *redis.Client
 }
 
 func (u *UserSvc) Login(form *dto.LoginReq) (string, error) {
@@ -58,8 +62,27 @@ func (u *UserSvc) Login(form *dto.LoginReq) (string, error) {
 }
 
 func (u *UserSvc) Logout(token string) {
-	// save to redis, mark the token as the revoked token
-	fmt.Println(token)
+	log.Info("user invokes Logout", zap.String("token", token))
+	if token == "" {
+		return
+	}
+
+	// logout should not blocking the main process
+	go func() {
+		claim, err := util.ParseToken(token, u.JwtSigningKey)
+		if err != nil {
+			log.Error("Logout invokes error", zap.Error(err))
+			return
+		}
+		// get the token expiration time
+		seconds := claim.ExpiresAt.Sub(time.Now()).Seconds()
+		if seconds <= 0 {
+			log.Info("token has expired, no need to revoke")
+			return
+		}
+		// save to redis, mark the token as the revoked token
+		u.RedisClient.Set(context.Background(), constant.RedisRevokedTokenKey, token, time.Duration(seconds)*time.Second)
+	}()
 }
 
 func (u *UserSvc) Profile(id int64) (*vo.UserVO, error) {
@@ -84,10 +107,9 @@ func (u *UserSvc) createToken(claims pojo.JwtCustomClaims) (string, error) {
 }
 
 func (u *UserSvc) Create(form *dto.UserCreateReq) error {
-	// check username uniqueness
-	user, _ := u.UserDAO.GetByUsername(form.Username)
-	if user != nil {
-		return errors.New("username already exists")
+	err := u.UserValidationSvc.CreateUserChecker(form)
+	if err != nil {
+		return err
 	}
 
 	salt := util.RandomString(8)

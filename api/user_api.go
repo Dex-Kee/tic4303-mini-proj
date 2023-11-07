@@ -41,8 +41,10 @@ func (u *UserApi) Login(c *gin.Context) {
 }
 
 func (u *UserApi) Logout(c *gin.Context) {
-	token := c.GetHeader("token")
+	token, _ := c.Cookie("token")
 	u.UserSvc.Logout(token)
+	// clear cookie
+	c.SetCookie("token", token, -1, "/", setting.Config.MustString("app.domain", "localhost"), false, false)
 	c.JSON(http.StatusOK, vo.SuccessResp(token))
 }
 

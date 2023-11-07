@@ -1,16 +1,15 @@
 package middleware
 
 import (
-	"errors"
 	"net/http"
-	"tic4303-mini-proj/api/pojo"
 	"tic4303-mini-proj/api/vo"
 	"tic4303-mini-proj/constant"
 	"tic4303-mini-proj/service"
+	"tic4303-mini-proj/util"
 
 	log "github.com/dzhcool/sven/zapkit"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/go-redis/redis/v8"
 	"github.com/google/wire"
 	"go.uber.org/zap"
 )
@@ -21,6 +20,7 @@ type AuthFilter struct {
 	JwtSigningKey []byte
 	DigestKey     string
 	UserSvc       *service.UserSvc
+	RedisClient   *redis.Client
 }
 
 func (a *AuthFilter) ValidateResource(c *gin.Context) {
@@ -35,7 +35,7 @@ func (a *AuthFilter) ValidateResource(c *gin.Context) {
 		return
 	}
 
-	claims, err := a.parserToken(token)
+	claims, err := util.ParseToken(token, a.JwtSigningKey)
 	if err != nil {
 		log.Error("error when parse token: ", zap.Error(err))
 		c.AbortWithStatusJSON(http.StatusUnauthorized, vo.UnauthorizedResp("token is invalid"))
@@ -64,24 +64,4 @@ func (a *AuthFilter) ValidateResource(c *gin.Context) {
 	c.Set(constant.AppUserIdHeader, claims.UserId)
 	c.Set(constant.AppUserRoleHeader, claims.Role)
 	c.Next()
-}
-
-func (a *AuthFilter) parserToken(tokenString string) (*pojo.JwtCustomClaims, error) {
-	if tokenString == "" {
-		return nil, errors.New("token is not found")
-	}
-
-	jwtToken, err := jwt.ParseWithClaims(tokenString, &pojo.JwtCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return a.JwtSigningKey, nil
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	if claims, ok := jwtToken.Claims.(*pojo.JwtCustomClaims); ok && jwtToken.Valid {
-		return claims, nil
-	}
-
-	return nil, errors.New("token is invalid")
 }
