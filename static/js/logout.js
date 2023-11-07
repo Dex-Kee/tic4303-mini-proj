@@ -4,9 +4,6 @@ $(document).ready(function () {
         $.ajax({
             type: "PUT",
             contentType: "application/json",
-            headers: {
-                "token": localStorage.getItem("token")
-            },
             url: "/api/user/logout",
             success: function (response) {
                 try {

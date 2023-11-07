@@ -27,7 +27,7 @@ func (a *AuthFilter) ValidateResource(c *gin.Context) {
 	resourcePath := c.FullPath()
 
 	// check token
-	token := c.GetHeader("token")
+	token, _ := c.Cookie("token")
 	claims, err := a.parserToken(token)
 	if err != nil {
 		log.Error("error when parse token: ", zap.Error(err))

@@ -55,8 +55,10 @@ func initGinEngine(r *router.ServerRouter) *gin.Engine {
 	app.NoRoute(r.NoRouterHandler)
 	app.NoMethod(r.NoMethodHandler)
 
-	// register api & page
+	// register api & page & middleware
 	r.RegisterPage(app)
 	r.RegisterApi(app)
+	r.RegisterMiddleware(app)
+
 	return app
 }

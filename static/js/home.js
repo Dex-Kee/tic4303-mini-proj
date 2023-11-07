@@ -24,9 +24,6 @@ $(document).ready(function () {
     $.ajax({
         type: "GET",
         url: "/api/user/profile",
-        headers: {
-            "token": localStorage.getItem("token")
-        },
         success: function (resp) {
             // Populate the form fields with fetched data
             console.log(resp);
@@ -67,9 +64,6 @@ $(document).ready(function () {
             type: "PUT",
             url: "/api/user/update",
             contentType: "application/json",
-            headers: {
-                "token": localStorage.getItem("token")
-            },
             data: JSON.stringify(data),
             success: function (response) {
                 // Handle the response from the backend (e.g., show a success message)

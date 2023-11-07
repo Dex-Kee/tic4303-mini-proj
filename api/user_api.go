@@ -5,9 +5,11 @@ import (
 	"net/http"
 	"tic4303-mini-proj/api/dto"
 	"tic4303-mini-proj/api/vo"
+	"tic4303-mini-proj/constant"
 	"tic4303-mini-proj/service"
 	"tic4303-mini-proj/util/req"
 
+	"github.com/dzhcool/sven/setting"
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 )
@@ -34,6 +36,7 @@ func (u *UserApi) Login(c *gin.Context) {
 		return
 	}
 
+	c.SetCookie("token", token, int(constant.TokenValidityDuration.Seconds()), "/", setting.Config.MustString("app.domain", "localhost"), false, false)
 	c.JSON(http.StatusOK, vo.SuccessResp(token))
 }
 

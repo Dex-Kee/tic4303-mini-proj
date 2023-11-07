@@ -143,5 +143,8 @@ func (u *UserSvc) FindAccessibleResourceByRole(role string) map[string]bool {
 	resourceMap["/api/user/update"] = true
 	resourceMap["/api/user/logout"] = true
 	resourceMap["/api/user/delete"] = false
+
+	resourceMap["/page/user/home"] = true
+	resourceMap["/page/user/logout"] = true
 	return resourceMap
 }

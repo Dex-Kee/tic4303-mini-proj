@@ -21,7 +21,6 @@ $(document).ready(function () {
                         // Response indicates success, extract the 'data' field
                         var data = response.data;
                         // store the token & redirect to home page
-                        localStorage.setItem("token", data);
                         window.location.href = "/page/user/home";
                     } else {
                         showToast(response.message)
