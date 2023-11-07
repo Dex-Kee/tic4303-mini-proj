@@ -81,7 +81,7 @@ func (u *UserSvc) Logout(token string) {
 			return
 		}
 		// save to redis, mark the token as the revoked token
-		u.RedisClient.Set(context.Background(), constant.RedisRevokedTokenKey, token, time.Duration(seconds)*time.Second)
+		u.RedisClient.Set(context.Background(), constant.RedisRevokedTokenKey+":"+token, "1", time.Duration(seconds)*time.Second)
 	}()
 }
 
