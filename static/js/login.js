@@ -18,9 +18,7 @@ $(document).ready(function () {
                 try {
                     // Parse the JSON response
                     if (response.code === 200) {
-                        // Response indicates success, extract the 'data' field
-                        var data = response.data;
-                        // store the token & redirect to home page
+                        // Redirect to the home page
                         window.location.href = "/page/user/home";
                     } else {
                         showToast(response.message)

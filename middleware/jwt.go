@@ -28,6 +28,13 @@ func (a *AuthFilter) ValidateResource(c *gin.Context) {
 
 	// check token
 	token, _ := c.Cookie("token")
+
+	// token is empty, redirect to login page
+	if token == "" {
+		c.Redirect(http.StatusFound, "/page/user/login")
+		return
+	}
+
 	claims, err := a.parserToken(token)
 	if err != nil {
 		log.Error("error when parse token: ", zap.Error(err))
