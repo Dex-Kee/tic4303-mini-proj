@@ -21,6 +21,8 @@ const (
 	// auth
 	TokenIssuer           = "app"
 	TokenValidityDuration = time.Minute * 10
+	LoginFailedMaxCount   = 3
+	LockoutDuration       = time.Minute * 10
 
 	// user
 	UserRoleAdmin   = "admin"
@@ -31,5 +33,6 @@ const (
 	AppUserRoleHeader = "app-user-role"
 
 	// redisKey
-	RedisRevokedTokenKey = "app:revoked-token"
+	RedisRevokedTokenKey            = "app:revoked-token"
+	RedisAccountLoginFailedCountKey = "app:account-login-failed"
 )

@@ -7,6 +7,7 @@ import (
 	"tic4303-mini-proj/api/pojo"
 	"tic4303-mini-proj/api/vo"
 	"tic4303-mini-proj/constant"
+	"tic4303-mini-proj/constant/exception"
 	"tic4303-mini-proj/dao"
 	"tic4303-mini-proj/model"
 	"tic4303-mini-proj/service/validation"
@@ -31,14 +32,9 @@ type UserSvc struct {
 }
 
 func (u *UserSvc) Login(form *dto.LoginReq) (string, error) {
-	// find by username
-	user, err := u.UserDAO.GetByUsername(form.Username)
+	user, err := u.UserValidationSvc.UserLoginChecker(form)
 	if err != nil {
-		return "", errors.New("username does not exist")
-	}
-
-	if util.DigestSHA256(form.Password+user.PasswordSalt) != user.Password {
-		return "", errors.New("password mismatch")
+		return "", err
 	}
 
 	// create jwt claim
@@ -101,9 +97,14 @@ func (u *UserSvc) Profile(id int64) (*vo.UserVO, error) {
 	return &userVO, nil
 }
 
-func (u *UserSvc) createToken(claims pojo.JwtCustomClaims) (string, error) {
+func (u *UserSvc) createToken(claims pojo.JwtCustomClaims) (string, *exception.Error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(u.JwtSigningKey)
+	signedString, err := token.SignedString(u.JwtSigningKey)
+	if err != nil {
+		log.Error("failed to create token", zap.Error(err))
+		return "", exception.NewError(500, "failed to create token")
+	}
+	return signedString, nil
 }
 
 func (u *UserSvc) Create(form *dto.UserCreateReq) error {

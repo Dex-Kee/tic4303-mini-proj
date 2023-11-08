@@ -27,11 +27,12 @@ func initServerRouter() *router.ServerRouter {
 	userDAO := &dao.UserDAO{
 		DB: db,
 	}
-	userValidationSvc := &validation.UserValidationSvc{
-		UserDAO: userDAO,
-	}
 	redisConfig := loadRedisCfg()
 	client := middleware.BuildRedisClient(redisConfig)
+	userValidationSvc := &validation.UserValidationSvc{
+		UserDAO:     userDAO,
+		RedisClient: client,
+	}
 	userSvc := &service.UserSvc{
 		JwtSigningKey:     v,
 		DigestKey:         string2,

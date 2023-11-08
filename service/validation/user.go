@@ -1,11 +1,17 @@
 package validation
 
 import (
+	"context"
 	"errors"
+	"strconv"
 	"tic4303-mini-proj/api/dto"
+	"tic4303-mini-proj/constant"
+	"tic4303-mini-proj/constant/exception"
 	"tic4303-mini-proj/dao"
+	"tic4303-mini-proj/model"
 	"tic4303-mini-proj/util"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/google/wire"
 	"github.com/samber/lo"
 )
@@ -13,7 +19,30 @@ import (
 var UserValidationSet = wire.NewSet(wire.Struct(new(UserValidationSvc), "*"))
 
 type UserValidationSvc struct {
-	UserDAO *dao.UserDAO
+	UserDAO     *dao.UserDAO
+	RedisClient *redis.Client
+}
+
+func (u *UserValidationSvc) UserLoginChecker(form *dto.LoginReq) (*model.User, *exception.Error) {
+	// check if user is locked
+	isLockout := u.isLockout(form.Username)
+	if isLockout {
+		return nil, exception.ErrLockout
+	}
+
+	// check login credential
+	user, err := u.UserDAO.GetByUsername(form.Username)
+	if err != nil {
+		u.increaseLoginFailedCount(form.Username)
+		return nil, exception.ErrLoginFailed
+	}
+
+	if util.DigestSHA256(form.Password+user.PasswordSalt) != user.Password {
+		u.increaseLoginFailedCount(form.Username)
+		return nil, exception.ErrLoginFailed
+	}
+
+	return user, nil
 }
 
 func (u *UserValidationSvc) CreateUserChecker(form *dto.UserCreateReq) error {
@@ -74,4 +103,28 @@ func (u *UserValidationSvc) userInfoChecker(id int64, email, phone, country, gen
 	}
 
 	return nil
+}
+
+func (u *UserValidationSvc) isLockout(username string) bool {
+	if username == "" {
+		username = "nil"
+	}
+	ctx := context.Background()
+	v := u.RedisClient.Get(ctx, constant.RedisAccountLoginFailedCountKey+":"+username)
+	if v != nil && v.Val() != "" {
+		count, _ := strconv.Atoi(v.Val())
+		return count >= constant.LoginFailedMaxCount
+	}
+	return false
+}
+
+func (u *UserValidationSvc) increaseLoginFailedCount(username string) {
+	if username == "" {
+		username = "nil"
+	}
+	ctx := context.Background()
+	v := u.RedisClient.Incr(ctx, constant.RedisAccountLoginFailedCountKey+":"+username)
+	if v != nil && v.Val() == constant.LoginFailedMaxCount {
+		u.RedisClient.Expire(ctx, constant.RedisAccountLoginFailedCountKey+":"+username, constant.LockoutDuration)
+	}
 }

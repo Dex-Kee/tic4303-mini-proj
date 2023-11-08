@@ -6,6 +6,7 @@ import (
 	"tic4303-mini-proj/api/dto"
 	"tic4303-mini-proj/api/vo"
 	"tic4303-mini-proj/constant"
+	"tic4303-mini-proj/constant/exception"
 	"tic4303-mini-proj/service"
 	"tic4303-mini-proj/util/req"
 
@@ -32,7 +33,9 @@ func (u *UserApi) Login(c *gin.Context) {
 
 	token, err := u.UserSvc.Login(&loginReq)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, vo.BadRequestResp(err.Error()))
+		// error must be AppError
+		appErr := err.(*exception.Error)
+		c.JSON(http.StatusOK, vo.ErrorResp(appErr.Code(), appErr.Error()))
 		return
 	}
 

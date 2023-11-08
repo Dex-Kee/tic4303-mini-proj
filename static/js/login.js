@@ -20,9 +20,9 @@ $(document).ready(function () {
                     if (response.code === 200) {
                         // Redirect to the home page
                         window.location.href = "/page/user/home";
-                    } else {
-                        showToast(response.message)
+                        return
                     }
+                    showToast(response.message)
                 } catch (Exception) {
                     showToast(Exception)
                 }
