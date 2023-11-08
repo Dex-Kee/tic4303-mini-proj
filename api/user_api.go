@@ -11,8 +11,10 @@ import (
 	"tic4303-mini-proj/util/req"
 
 	"github.com/dzhcool/sven/setting"
+	log "github.com/dzhcool/sven/zapkit"
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
+	"go.uber.org/zap"
 )
 
 var UserApiSet = wire.NewSet(wire.Struct(new(UserApi), "*"))
@@ -81,6 +83,13 @@ func (u *UserApi) Update(c *gin.Context) {
 	err := c.ShouldBindJSON(&userUpdateReq)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, vo.BadRequestResp("request body is not found"))
+		return
+	}
+
+	// client should not pass in any id explicitly
+	if userUpdateReq.Id != 0 {
+		log.Error("client send id explicitly when update user profile", zap.String("ip", c.ClientIP()))
+		c.JSON(http.StatusBadRequest, vo.ErrorResp(exception.ErrUpdateInvalid.Code(), exception.ErrUpdateInvalid.Error()))
 		return
 	}
 
