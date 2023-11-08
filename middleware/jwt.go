@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"tic4303-mini-proj/api/vo"
 	"tic4303-mini-proj/constant"
@@ -59,6 +60,12 @@ func (a *AuthFilter) ValidateResource(c *gin.Context) {
 	}
 
 	// check if the token has been revoked
+	revokedToken := a.RedisClient.Get(context.Background(), constant.RedisRevokedTokenKey+":"+token)
+	if revokedToken != nil && revokedToken.Val() != "" {
+		log.Error("token has been revoked")
+		c.Redirect(http.StatusFound, "/page/user/login")
+		return
+	}
 
 	// write to header
 	c.Set(constant.AppUserIdHeader, claims.UserId)
