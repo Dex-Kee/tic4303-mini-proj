@@ -1,13 +1,13 @@
 FROM golang:1.19 as build
 
 # set working directory
-WORKDIR /repo
+WORKDIR /app
 
 # copy source code
 COPY . .
 
 # build binary
-RUN go build -o /app/bin/program ./main.go
+RUN GOOS=linux CGO_ENABLED=0 go build -o tic4303 ./main.go ./wire_gen.go
 
 FROM alpine:latest
 
@@ -15,17 +15,15 @@ FROM alpine:latest
 WORKDIR /app
 
 # copy binary
-COPY --from=build /repo/bin/program /app/program
+COPY --from=build /app/tic4303 /app/tic4303
 
 # copy copy template & static file
-COPY ./template /app/template
+COPY ./templates /app/templates
 COPY ./static /app/static
 COPY ./conf /app/conf
 
 # expose port
-EXPOSE 18080
+EXPOSE 8080
 
 # run binary
-CMD ["/app/program", "-c", "/app/conf/app.ini"]
-
-
+ENTRYPOINT ["./tic4303", "-c", "/app/conf/app.ini"]

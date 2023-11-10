@@ -1,0 +1,15 @@
+version: "3"
+services:
+  app-tic4303:
+    build: .
+    container_name: app-tic4303
+    ports:
+      - "8080:8080"
+    restart: always
+    volumes:
+      - ./logs:/app/logs
+
+networks:
+  default:
+    name: docker_network
+    external: true
