@@ -51,9 +51,17 @@ func (u *UserDAO) GetById(id int64) (*model.User, error) {
 
 func (u *UserDAO) GetByUsername(username string) (*model.User, error) {
 	var user model.User
+
+	// Unsafe query construction with string concatenation:
+	//if err := u.DB.Raw("SELECT * FROM t_user WHERE username = '" + username + "'").Scan(&user).Error; err != nil {
+	//	return nil, err
+	//}
+
+	// Safe query
 	if err := u.DB.Where("username =?", username).First(&user).Error; err != nil {
 		return nil, err
 	}
+
 	return &user, nil
 }
 
