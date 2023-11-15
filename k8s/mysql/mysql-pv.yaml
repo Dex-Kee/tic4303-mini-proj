@@ -7,7 +7,7 @@ spec:
     name: mysql-pvc
     namespace: app-tic4303
   accessModes:
-    - ReadWriteOnce        #访问模式定义为只能以读写的方式挂载到单个节点
+    - ReadWriteOnce
   capacity:
     storage: 1Gi
   persistentVolumeReclaimPolicy: Retain
