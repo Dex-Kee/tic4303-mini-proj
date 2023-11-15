@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: app-tic4303
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:6.2.5
+        ports:
+        - containerPort: 49999
+        command: 
+         - sh
+         - -c
+         - "exec redis-server /etc/redis.conf"
+        volumeMounts:
+        - name: redis-persistent-storage
+          mountPath: /data
+        - name: redis-config
+          mountPath: /etc/redis.conf
+          subPath: redis.conf
+      volumes:
+      - name: redis-persistent-storage # name must match with volumeMounts
+        persistentVolumeClaim:
+          claimName: redis-pvc       # specify pvc name
+      - name: redis-config
+        configMap:
+          name: redis-config
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: app-tic4303
+spec:
+  type: NodePort
+  ports:
+  - port: 49999
+    targetPort: 49999
+  selector:
+    app: redis

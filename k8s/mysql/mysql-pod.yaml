@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  namespace: app-tic4303
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:5.7
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: abcd1234
+        - name: MYSQL_TCP_PORT
+          value: "50000"
+        ports:
+        - containerPort: 50000
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+        - name: mysql-config
+          mountPath: /etc/mysql/mysql.conf.d/mysqld.cnf
+          subPath: mysqld.cnf
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: mysql-pvc
+      - name: mysql-config
+        configMap: 
+          name: mysql-config
+
+---          
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  namespace: app-tic4303
+spec:
+  type: NodePort
+  ports:
+  - port: 50000
+    targetPort: 50000
+  selector:
+    app: mysql

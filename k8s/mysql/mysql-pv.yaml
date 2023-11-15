@@ -1,0 +1,15 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: mysql-pv
+spec:
+  claimRef:
+    name: mysql-pvc
+    namespace: app-tic4303
+  accessModes:
+    - ReadWriteOnce        #访问模式定义为只能以读写的方式挂载到单个节点
+  capacity:
+    storage: 1Gi
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /k8s/mysql/mysql-data

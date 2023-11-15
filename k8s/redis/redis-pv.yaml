@@ -1,0 +1,15 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: redis-pv
+spec:
+  claimRef:
+    name: redis-pvc
+    namespace: app-tic4303
+  accessModes:
+    - ReadWriteOnce        
+  capacity:
+    storage: 1Gi
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /k8s/redis/redis-data
