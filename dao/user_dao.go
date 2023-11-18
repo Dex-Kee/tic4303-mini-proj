@@ -2,6 +2,7 @@ package dao
 
 import (
 	"errors"
+	"regexp"
 	"tic4303-mini-proj/model"
 
 	log "github.com/dzhcool/sven/zapkit"
@@ -52,16 +53,17 @@ func (u *UserDAO) GetById(id int64) (*model.User, error) {
 func (u *UserDAO) GetByUsername(username string) (*model.User, error) {
 	var user model.User
 
-	// Unsafe query construction with string concatenation:
-	//if err := u.DB.Raw("SELECT * FROM t_user WHERE username = '" + username + "'").Scan(&user).Error; err != nil {
-	//	return nil, err
-	//}
+	// Injected sql: xbw' and 0 in (select sleep(15) ) --
 
-	// Safe query
-	if err := u.DB.Where("username =?", username).First(&user).Error; err != nil {
-		return nil, err
+	// Apply the regex for only alphanumeric characters to prevent sql injection
+	regex := regexp.MustCompile(`^[a-zA-Z0-9]+$`)
+	if regex.MatchString(username) {
+		if err := u.DB.Where("username =?", username).First(&user).Error; err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, errors.New("invalid username")
 	}
-
 	return &user, nil
 }
 
